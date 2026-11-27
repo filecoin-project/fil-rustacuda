@@ -1,13 +1,13 @@
 #[macro_use]
-extern crate rustacuda;
+extern crate fil_rustacuda;
 
-use rustacuda::prelude::*;
+use fil_rustacuda::prelude::*;
 use std::error::Error;
 use std::ffi::CString;
 
 fn main() -> Result<(), Box<dyn Error>> {
     // Set up the context, load the module, and create a stream to run kernels in.
-    rustacuda::init(CudaFlags::empty())?;
+    fil_rustacuda::init(CudaFlags::empty())?;
     let device = Device::get_device(0)?;
     let _ctx = Context::create_and_push(ContextFlags::MAP_HOST | ContextFlags::SCHED_AUTO, device)?;
 

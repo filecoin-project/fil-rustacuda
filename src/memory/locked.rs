@@ -27,8 +27,8 @@ impl<T: DeviceCopy + Clone> LockedBuffer<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let mut buffer = LockedBuffer::new(&0u64, 5).unwrap();
     /// buffer[0] = 1;
     /// ```
@@ -52,8 +52,8 @@ impl<T: DeviceCopy + Clone> LockedBuffer<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let values = [0u64; 5];
     /// let mut buffer = LockedBuffer::from_slice(&values).unwrap();
     /// buffer[0] = 1;
@@ -85,21 +85,21 @@ impl<T: DeviceCopy> LockedBuffer<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let mut buffer = unsafe { LockedBuffer::uninitialized(5).unwrap() };
     /// for i in buffer.iter_mut() {
     ///     *i = 0u64;
     /// }
     /// ```
     pub unsafe fn uninitialized(size: usize) -> CudaResult<Self> {
-        let ptr: *mut T = if size > 0 && mem::size_of::<T>() > 0 {
+        let ptr: *mut T = if size > 0 && size_of::<T>() > 0 {
             cuda_malloc_locked(size)?
         } else {
             ptr::NonNull::dangling().as_ptr()
         };
         Ok(LockedBuffer {
-            buf: ptr as *mut T,
+            buf: ptr,
             capacity: size,
         })
     }
@@ -111,8 +111,8 @@ impl<T: DeviceCopy> LockedBuffer<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let buffer = LockedBuffer::new(&0u64, 5).unwrap();
     /// let sum : u64 = buffer.as_slice().iter().sum();
     /// ```
@@ -127,8 +127,8 @@ impl<T: DeviceCopy> LockedBuffer<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let mut buffer = LockedBuffer::new(&0u64, 5).unwrap();
     /// for i in buffer.as_mut_slice() {
     ///     *i = 12u64;
@@ -146,7 +146,7 @@ impl<T: DeviceCopy> LockedBuffer<T> {
     /// checked:
     ///
     /// * `ptr` needs to have been previously allocated via `LockedBuffer` or
-    /// [`cuda_malloc_locked`](fn.cuda_malloc_locked.html).
+    ///   [`cuda_malloc_locked`](fn.cuda_malloc_locked.html).
     /// * `ptr`'s `T` needs to have the same size and alignment as it was allocated with.
     /// * `capacity` needs to be the capacity that the pointer was allocated with.
     ///
@@ -162,9 +162,9 @@ impl<T: DeviceCopy> LockedBuffer<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
     /// use std::mem;
-    /// use rustacuda::memory::*;
+    /// use fil_rustacuda::memory::*;
     ///
     /// let mut buffer = LockedBuffer::new(&0u64, 5).unwrap();
     /// let ptr = buffer.as_mut_ptr();
@@ -189,8 +189,8 @@ impl<T: DeviceCopy> LockedBuffer<T> {
     /// # Example
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let x = LockedBuffer::new(&0u64, 5).unwrap();
     /// match LockedBuffer::drop(x) {
     ///     Ok(()) => println!("Successfully destroyed"),
@@ -205,7 +205,7 @@ impl<T: DeviceCopy> LockedBuffer<T> {
             return Ok(());
         }
 
-        if buf.capacity > 0 && mem::size_of::<T>() > 0 {
+        if buf.capacity > 0 && size_of::<T>() > 0 {
             let capacity = buf.capacity;
             let ptr = mem::replace(&mut buf.buf, ptr::null_mut());
             unsafe {
@@ -257,7 +257,7 @@ impl<T: DeviceCopy> Drop for LockedBuffer<T> {
             return;
         }
 
-        if self.capacity > 0 && mem::size_of::<T>() > 0 {
+        if self.capacity > 0 && size_of::<T>() > 0 {
             // No choice but to panic if this fails.
             unsafe {
                 cuda_free_locked(self.buf).expect("Failed to deallocate CUDA page-locked memory.");
@@ -325,7 +325,7 @@ mod test {
     #[test]
     fn overflows_usize() {
         let _context = crate::quick_init().unwrap();
-        let err = LockedBuffer::new(&0u64, ::std::usize::MAX - 1).unwrap_err();
+        let err = LockedBuffer::new(&0u64, usize::MAX - 1).unwrap_err();
         assert_eq!(CudaError::InvalidMemoryAllocation, err);
     }
 

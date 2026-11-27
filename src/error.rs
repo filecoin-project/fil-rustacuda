@@ -96,9 +96,12 @@ impl fmt::Display for CudaError {
                 let value = other as u32;
                 let mut ptr: *const c_char = ptr::null();
                 unsafe {
-                    cuGetErrorString(mem::transmute(value), &mut ptr as *mut *const c_char)
-                        .to_result()
-                        .map_err(|_| fmt::Error)?;
+                    cuGetErrorString(
+                        mem::transmute::<u32, cudaError_enum>(value),
+                        &mut ptr as *mut *const c_char,
+                    )
+                    .to_result()
+                    .map_err(|_| fmt::Error)?;
                     let cstr = CStr::from_ptr(ptr);
                     write!(f, "{:?}", cstr)
                 }

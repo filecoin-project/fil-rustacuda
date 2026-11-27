@@ -5,7 +5,6 @@ use crate::memory::DeviceCopy;
 use crate::memory::DevicePointer;
 use crate::stream::Stream;
 use std::iter::{ExactSizeIterator, FusedIterator};
-use std::mem;
 use std::ops::{
     Index, IndexMut, Range, RangeFrom, RangeFull, RangeInclusive, RangeTo, RangeToInclusive,
 };
@@ -27,8 +26,8 @@ impl<T> DeviceSlice<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let a = DeviceBuffer::from_slice(&[1, 2, 3]).unwrap();
     /// assert_eq!(a.len(), 3);
     /// ```
@@ -41,8 +40,8 @@ impl<T> DeviceSlice<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let a : DeviceBuffer<u64> = unsafe { DeviceBuffer::uninitialized(0).unwrap() };
     /// assert!(a.is_empty());
     /// ```
@@ -59,8 +58,8 @@ impl<T> DeviceSlice<T> {
     /// Examples:
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let a = DeviceBuffer::from_slice(&[1, 2, 3]).unwrap();
     /// println!("{:p}", a.as_ptr());
     /// ```
@@ -77,8 +76,8 @@ impl<T> DeviceSlice<T> {
     /// Examples:
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let mut a = DeviceBuffer::from_slice(&[1, 2, 3]).unwrap();
     /// println!("{:p}", a.as_mut_ptr());
     /// ```
@@ -98,8 +97,8 @@ impl<T> DeviceSlice<T> {
     /// Examples:
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let buf = DeviceBuffer::from_slice(&[0u64, 1, 2, 3, 4, 5]).unwrap();
     /// let (left, right) = buf.split_at(3);
     /// let mut left_host = [0u64, 0, 0];
@@ -131,8 +130,8 @@ impl<T> DeviceSlice<T> {
     /// Examples:
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let mut buf = DeviceBuffer::from_slice(&[0u64, 0, 0, 0, 0, 0]).unwrap();
     ///
     /// {
@@ -171,8 +170,8 @@ impl<T> DeviceSlice<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let slice = DeviceBuffer::from_slice(&[1u64, 2, 3, 4, 5]).unwrap();
     /// let mut iter = slice.chunks(2);
     ///
@@ -185,7 +184,7 @@ impl<T> DeviceSlice<T> {
     /// assert_eq!(iter.next().unwrap().len(), 1);
     ///
     /// ```
-    pub fn chunks(&self, chunk_size: usize) -> DeviceChunks<T> {
+    pub fn chunks(&self, chunk_size: usize) -> DeviceChunks<'_, T> {
         DeviceChunks(self.0.chunks(chunk_size))
     }
 
@@ -203,8 +202,8 @@ impl<T> DeviceSlice<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let mut slice = DeviceBuffer::from_slice(&[0u64, 0, 0, 0, 0]).unwrap();
     /// {
     ///     let mut iter = slice.chunks_mut(2);
@@ -221,7 +220,7 @@ impl<T> DeviceSlice<T> {
     /// slice.copy_to(&mut host_buf).unwrap();
     /// assert_eq!([0u64, 0, 2, 3, 0], host_buf);
     /// ```
-    pub fn chunks_mut(&mut self, chunk_size: usize) -> DeviceChunksMut<T> {
+    pub fn chunks_mut(&mut self, chunk_size: usize) -> DeviceChunksMut<'_, T> {
         DeviceChunksMut(self.0.chunks_mut(chunk_size))
     }
 
@@ -268,8 +267,8 @@ impl<T> DeviceSlice<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let mut x = DeviceBuffer::from_slice(&[0u64, 1, 2, 3, 4, 5]).unwrap();
     /// // Manually slice the buffer (this is not recommended!)
     /// let ptr = unsafe { x.as_device_ptr().offset(1) };
@@ -353,8 +352,8 @@ impl<'a, T> DoubleEndedIterator for DeviceChunks<'a, T> {
             .map(|slice| unsafe { DeviceSlice::from_slice(slice) })
     }
 }
-impl<'a, T> ExactSizeIterator for DeviceChunks<'a, T> {}
-impl<'a, T> FusedIterator for DeviceChunks<'a, T> {}
+impl<T> ExactSizeIterator for DeviceChunks<'_, T> {}
+impl<T> FusedIterator for DeviceChunks<'_, T> {}
 
 /// An iterator over a [`DeviceSlice`](struct.DeviceSlice.html) in (non-overlapping) mutable chunks
 /// (`chunk_size` elements at a time).
@@ -403,8 +402,8 @@ impl<'a, T> DoubleEndedIterator for DeviceChunksMut<'a, T> {
             .map(|slice| unsafe { DeviceSlice::from_slice_mut(slice) })
     }
 }
-impl<'a, T> ExactSizeIterator for DeviceChunksMut<'a, T> {}
-impl<'a, T> FusedIterator for DeviceChunksMut<'a, T> {}
+impl<T> ExactSizeIterator for DeviceChunksMut<'_, T> {}
+impl<T> FusedIterator for DeviceChunksMut<'_, T> {}
 
 macro_rules! impl_index {
     ($($t:ty)*) => {
@@ -443,7 +442,7 @@ impl<T: DeviceCopy, I: AsRef<[T]> + AsMut<[T]> + ?Sized> CopyDestination<I> for 
             self.len() == val.len(),
             "destination and source slices have different lengths"
         );
-        let size = mem::size_of::<T>() * self.len();
+        let size = size_of::<T>() * self.len();
         if size != 0 {
             unsafe {
                 cuda_driver_sys::cuMemcpyHtoD_v2(
@@ -463,7 +462,7 @@ impl<T: DeviceCopy, I: AsRef<[T]> + AsMut<[T]> + ?Sized> CopyDestination<I> for 
             self.len() == val.len(),
             "destination and source slices have different lengths"
         );
-        let size = mem::size_of::<T>() * self.len();
+        let size = size_of::<T>() * self.len();
         if size != 0 {
             unsafe {
                 cuda_driver_sys::cuMemcpyDtoH_v2(
@@ -483,7 +482,7 @@ impl<T: DeviceCopy> CopyDestination<DeviceSlice<T>> for DeviceSlice<T> {
             self.len() == val.len(),
             "destination and source slices have different lengths"
         );
-        let size = mem::size_of::<T>() * self.len();
+        let size = size_of::<T>() * self.len();
         if size != 0 {
             unsafe {
                 cuda_driver_sys::cuMemcpyDtoD_v2(
@@ -502,7 +501,7 @@ impl<T: DeviceCopy> CopyDestination<DeviceSlice<T>> for DeviceSlice<T> {
             self.len() == val.len(),
             "destination and source slices have different lengths"
         );
-        let size = mem::size_of::<T>() * self.len();
+        let size = size_of::<T>() * self.len();
         if size != 0 {
             unsafe {
                 cuda_driver_sys::cuMemcpyDtoD_v2(
@@ -534,7 +533,7 @@ impl<T: DeviceCopy, I: AsRef<[T]> + AsMut<[T]> + ?Sized> AsyncCopyDestination<I>
             self.len() == val.len(),
             "destination and source slices have different lengths"
         );
-        let size = mem::size_of::<T>() * self.len();
+        let size = size_of::<T>() * self.len();
         if size != 0 {
             cuda_driver_sys::cuMemcpyHtoDAsync_v2(
                 self.0.as_mut_ptr() as u64,
@@ -553,7 +552,7 @@ impl<T: DeviceCopy, I: AsRef<[T]> + AsMut<[T]> + ?Sized> AsyncCopyDestination<I>
             self.len() == val.len(),
             "destination and source slices have different lengths"
         );
-        let size = mem::size_of::<T>() * self.len();
+        let size = size_of::<T>() * self.len();
         if size != 0 {
             cuda_driver_sys::cuMemcpyDtoHAsync_v2(
                 val.as_mut_ptr() as *mut c_void,
@@ -572,7 +571,7 @@ impl<T: DeviceCopy> AsyncCopyDestination<DeviceSlice<T>> for DeviceSlice<T> {
             self.len() == val.len(),
             "destination and source slices have different lengths"
         );
-        let size = mem::size_of::<T>() * self.len();
+        let size = size_of::<T>() * self.len();
         if size != 0 {
             cuda_driver_sys::cuMemcpyDtoDAsync_v2(
                 self.0.as_mut_ptr() as u64,
@@ -590,7 +589,7 @@ impl<T: DeviceCopy> AsyncCopyDestination<DeviceSlice<T>> for DeviceSlice<T> {
             self.len() == val.len(),
             "destination and source slices have different lengths"
         );
-        let size = mem::size_of::<T>() * self.len();
+        let size = size_of::<T>() * self.len();
         if size != 0 {
             cuda_driver_sys::cuMemcpyDtoDAsync_v2(
                 val.as_mut_ptr() as u64,

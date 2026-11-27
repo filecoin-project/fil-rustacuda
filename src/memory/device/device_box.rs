@@ -29,8 +29,8 @@ impl<T: DeviceCopy> DeviceBox<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let five = DeviceBox::new(&5).unwrap();
     /// ```
     pub fn new(val: &T) -> CudaResult<Self> {
@@ -53,13 +53,13 @@ impl<T> DeviceBox<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let mut five = unsafe { DeviceBox::uninitialized().unwrap() };
     /// five.copy_from(&5u64).unwrap();
     /// ```
     pub unsafe fn uninitialized() -> CudaResult<Self> {
-        if mem::size_of::<T>() == 0 {
+        if size_of::<T>() == 0 {
             Ok(DeviceBox {
                 ptr: DevicePointer::null(),
             })
@@ -82,8 +82,8 @@ impl<T> DeviceBox<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let mut zero = unsafe { DeviceBox::zeroed().unwrap() };
     /// let mut value = 5u64;
     /// zero.copy_to(&mut value).unwrap();
@@ -91,11 +91,11 @@ impl<T> DeviceBox<T> {
     /// ```
     pub unsafe fn zeroed() -> CudaResult<Self> {
         let mut new_box = DeviceBox::uninitialized()?;
-        if mem::size_of::<T>() != 0 {
+        if size_of::<T>() != 0 {
             cuda_driver_sys::cuMemsetD8_v2(
                 new_box.as_device_ptr().as_raw_mut() as u64,
                 0,
-                mem::size_of::<T>(),
+                size_of::<T>(),
             )
             .to_result()?;
         }
@@ -118,8 +118,8 @@ impl<T> DeviceBox<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let x = DeviceBox::new(&5).unwrap();
     /// let ptr = DeviceBox::into_device(x).as_raw_mut();
     /// let x = unsafe { DeviceBox::from_raw(ptr) };
@@ -146,8 +146,8 @@ impl<T> DeviceBox<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let x = DeviceBox::new(&5).unwrap();
     /// let ptr = DeviceBox::into_device(x);
     /// let x = unsafe { DeviceBox::from_device(ptr) };
@@ -169,8 +169,8 @@ impl<T> DeviceBox<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let x = DeviceBox::new(&5).unwrap();
     /// let ptr = DeviceBox::into_device(x);
     /// # unsafe { DeviceBox::from_device(ptr) };
@@ -189,8 +189,8 @@ impl<T> DeviceBox<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let mut x = DeviceBox::new(&5).unwrap();
     /// let ptr = x.as_device_ptr();
     /// println!("{:p}", ptr);
@@ -207,8 +207,8 @@ impl<T> DeviceBox<T> {
     /// # Example
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let x = DeviceBox::new(&5).unwrap();
     /// match DeviceBox::drop(x) {
     ///     Ok(()) => println!("Successfully destroyed"),
@@ -250,13 +250,13 @@ impl<T> Drop for DeviceBox<T> {
 }
 impl<T> Pointer for DeviceBox<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Pointer::fmt(&self.ptr, f)
+        Pointer::fmt(&self.ptr, f)
     }
 }
 impl<T> crate::private::Sealed for DeviceBox<T> {}
 impl<T: DeviceCopy> CopyDestination<T> for DeviceBox<T> {
     fn copy_from(&mut self, val: &T) -> CudaResult<()> {
-        let size = mem::size_of::<T>();
+        let size = size_of::<T>();
         if size != 0 {
             unsafe {
                 cuda_driver_sys::cuMemcpyHtoD_v2(
@@ -271,7 +271,7 @@ impl<T: DeviceCopy> CopyDestination<T> for DeviceBox<T> {
     }
 
     fn copy_to(&self, val: &mut T) -> CudaResult<()> {
-        let size = mem::size_of::<T>();
+        let size = size_of::<T>();
         if size != 0 {
             unsafe {
                 cuda_driver_sys::cuMemcpyDtoH_v2(
@@ -287,7 +287,7 @@ impl<T: DeviceCopy> CopyDestination<T> for DeviceBox<T> {
 }
 impl<T: DeviceCopy> CopyDestination<DeviceBox<T>> for DeviceBox<T> {
     fn copy_from(&mut self, val: &DeviceBox<T>) -> CudaResult<()> {
-        let size = mem::size_of::<T>();
+        let size = size_of::<T>();
         if size != 0 {
             unsafe {
                 cuda_driver_sys::cuMemcpyDtoD_v2(
@@ -302,7 +302,7 @@ impl<T: DeviceCopy> CopyDestination<DeviceBox<T>> for DeviceBox<T> {
     }
 
     fn copy_to(&self, val: &mut DeviceBox<T>) -> CudaResult<()> {
-        let size = mem::size_of::<T>();
+        let size = size_of::<T>();
         if size != 0 {
             unsafe {
                 cuda_driver_sys::cuMemcpyDtoD_v2(
@@ -318,7 +318,7 @@ impl<T: DeviceCopy> CopyDestination<DeviceBox<T>> for DeviceBox<T> {
 }
 impl<T: DeviceCopy> AsyncCopyDestination<DeviceBox<T>> for DeviceBox<T> {
     unsafe fn async_copy_from(&mut self, val: &DeviceBox<T>, stream: &Stream) -> CudaResult<()> {
-        let size = mem::size_of::<T>();
+        let size = size_of::<T>();
         if size != 0 {
             cuda_driver_sys::cuMemcpyDtoDAsync_v2(
                 self.ptr.as_raw_mut() as u64,
@@ -332,7 +332,7 @@ impl<T: DeviceCopy> AsyncCopyDestination<DeviceBox<T>> for DeviceBox<T> {
     }
 
     unsafe fn async_copy_to(&self, val: &mut DeviceBox<T>, stream: &Stream) -> CudaResult<()> {
-        let size = mem::size_of::<T>();
+        let size = size_of::<T>();
         if size != 0 {
             cuda_driver_sys::cuMemcpyDtoDAsync_v2(
                 val.ptr.as_raw_mut() as u64,

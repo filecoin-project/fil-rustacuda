@@ -238,11 +238,11 @@ impl Device {
     ///
     /// # Example
     /// ```
-    /// # use rustacuda::*;
+    /// # use fil_rustacuda::*;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # init(CudaFlags::empty())?;
-    /// use rustacuda::device::Device;
+    /// use fil_rustacuda::device::Device;
     /// let num_devices = Device::num_devices()?;
     /// println!("Number of devices: {}", num_devices);
     /// # Ok(())
@@ -262,11 +262,11 @@ impl Device {
     ///
     /// # Example
     /// ```
-    /// # use rustacuda::*;
+    /// # use fil_rustacuda::*;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # init(CudaFlags::empty())?;
-    /// use rustacuda::device::Device;
+    /// use fil_rustacuda::device::Device;
     /// let device = Device::get_device(0)?;
     /// println!("Device Name: {}", device.name()?);
     /// # Ok(())
@@ -284,11 +284,11 @@ impl Device {
     ///
     /// # Example
     /// ```
-    /// # use rustacuda::*;
+    /// # use fil_rustacuda::*;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # init(CudaFlags::empty())?;
-    /// use rustacuda::device::Device;
+    /// use fil_rustacuda::device::Device;
     /// for device in Device::devices()? {
     ///     let device = device?;
     ///     println!("Device Name: {}", device.name()?);
@@ -306,11 +306,11 @@ impl Device {
     ///
     /// # Example
     /// ```
-    /// # use rustacuda::*;
+    /// # use fil_rustacuda::*;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # init(CudaFlags::empty())?;
-    /// use rustacuda::device::Device;
+    /// use fil_rustacuda::device::Device;
     /// let device = Device::get_device(0)?;
     /// println!("Device Memory: {}", device.total_memory()?);
     /// # Ok(())
@@ -328,11 +328,11 @@ impl Device {
     ///
     /// # Example
     /// ```
-    /// # use rustacuda::*;
+    /// # use fil_rustacuda::*;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # init(CudaFlags::empty())?;
-    /// use rustacuda::device::Device;
+    /// use fil_rustacuda::device::Device;
     /// let device = Device::get_device(0)?;
     /// println!("Device Name: {}", device.name()?);
     /// # Ok(())
@@ -361,11 +361,11 @@ impl Device {
     ///
     /// # Example
     /// ```
-    /// # use rustacuda::*;
+    /// # use fil_rustacuda::*;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # init(CudaFlags::empty())?;
-    /// use rustacuda::device::Device;
+    /// use fil_rustacuda::device::Device;
     /// let device = Device::get_device(0)?;
     /// println!("Device UUID: {:?}", device.uuid()?);
     /// # Ok(())
@@ -384,11 +384,11 @@ impl Device {
     ///
     /// # Example
     /// ```
-    /// # use rustacuda::*;
+    /// # use fil_rustacuda::*;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # init(CudaFlags::empty())?;
-    /// use rustacuda::device::{Device, DeviceAttribute};
+    /// use fil_rustacuda::device::{Device, DeviceAttribute};
     /// let device = Device::get_device(0)?;
     /// println!("Max Threads Per Block: {}",
     ///     device.get_attribute(DeviceAttribute::MaxThreadsPerBlock).unwrap());
@@ -401,7 +401,7 @@ impl Device {
             cuDeviceGetAttribute(
                 &mut val as *mut i32,
                 // This should be safe, as the repr and values of DeviceAttribute should match.
-                ::std::mem::transmute(attr),
+                ::std::mem::transmute::<DeviceAttribute, CUdevice_attribute>(attr),
                 self.device,
             )
             .to_result()?;

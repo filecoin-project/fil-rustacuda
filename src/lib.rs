@@ -48,7 +48,7 @@
 //!
 //! ```text
 //! [dependencies]
-//! rustacuda = "0.1"
+//! fil-rustacuda = "0.1"
 //! rustacuda_derive = "0.1"
 //! rustacuda_core = "0.1"
 //! ```
@@ -57,7 +57,7 @@
 //!
 //! ```text
 //! #[macro_use]
-//! extern crate rustacuda;
+//! extern crate fil_rustacuda;
 //!
 //! #[macro_use]
 //! extern crate rustacuda_derive;
@@ -81,17 +81,17 @@
 //!
 //! ```
 //! #[macro_use]
-//! extern crate rustacuda;
+//! extern crate fil_rustacuda;
 //! extern crate rustacuda_core;
 //!
-//! use rustacuda::prelude::*;
-//! use rustacuda::memory::DeviceBox;
+//! use fil_rustacuda::prelude::*;
+//! use fil_rustacuda::memory::DeviceBox;
 //! use std::error::Error;
 //! use std::ffi::CString;
 //!
 //! fn main() -> Result<(), Box<dyn Error>> {
 //!     // Initialize the CUDA API
-//!     rustacuda::init(CudaFlags::empty())?;
+//!     fil_rustacuda::init(CudaFlags::empty())?;
 //!     
 //!     // Get the first device
 //!     let device = Device::get_device(0)?;
@@ -148,7 +148,8 @@
 // TODO: Add the missing_doc_code_examples warning, switch these to Deny later.
 
 // Allow clippy lints
-#![allow(unknown_lints, clippy::new_ret_no_self)]
+// The hidden `__Nonexhaustive` enum variants are public API; `#[non_exhaustive]` would remove them.
+#![allow(unknown_lints, clippy::new_ret_no_self, clippy::manual_non_exhaustive)]
 
 #[macro_use]
 extern crate bitflags;
@@ -160,6 +161,23 @@ extern crate rustacuda_core;
 extern crate rustacuda_derive;
 #[doc(hidden)]
 pub use rustacuda_derive::*;
+
+// Keeps the bitflags 1.x `from_bits_unchecked` constructor, which bitflags 2 doesn't generate.
+macro_rules! impl_from_bits_unchecked {
+    ($($flags:ty),* $(,)?) => {$(
+        impl $flags {
+            /// Convert from the underlying bit representation, keeping bits that don't correspond
+            /// to a defined flag. Equivalent to `from_bits_retain`.
+            ///
+            /// # Safety
+            ///
+            /// Undefined bits are passed through to the CUDA driver unchecked.
+            pub const unsafe fn from_bits_unchecked(bits: u32) -> Self {
+                Self::from_bits_retain(bits)
+            }
+        }
+    )*};
+}
 
 pub mod context;
 pub mod device;
@@ -181,12 +199,22 @@ use cuda_driver_sys::{cuDriverGetVersion, cuInit};
 bitflags! {
     /// Bit flags for initializing the CUDA driver. Currently, no flags are defined,
     /// so `CudaFlags::empty()` is the only valid value.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     pub struct CudaFlags: u32 {
         // We need to give bitflags at least one constant.
         #[doc(hidden)]
         const _ZERO = 0;
     }
 }
+
+impl_from_bits_unchecked!(
+    CudaFlags,
+    ContextFlags,
+    event::EventFlags,
+    memory::array::ArrayObjectFlags,
+    stream::StreamFlags,
+    stream::StreamWaitEventFlags,
+);
 
 /// Initialize the CUDA Driver API.
 ///

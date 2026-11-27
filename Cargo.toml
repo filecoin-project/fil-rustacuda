@@ -2,7 +2,7 @@
 name = "fil-rustacuda"
 version = "0.1.4"
 authors = ["Brook Heisler <brookheisler@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 description = "CUDA Driver API Wrapper"
 repository = "https://github.com/filecoin-project/fil-rustacuda"
@@ -10,12 +10,18 @@ readme = "README.md"
 license = "Apache-2.0 OR MIT"
 keywords = ["bindings", "cuda", "gpgpu"]
 categories = ["api-bindings", "concurrency"]
+rust-version = "1.85"
+resolver = "3"
+
+# Holds only compile_fail doctests for the DeviceCopy derive.
+[package.metadata.cargo-shear]
+ignored-paths = ["src/derive_compile_fail.rs"]
 
 [badges]
 maintenance = { status = "actively-developed" }
 
 [dependencies]
 cuda-driver-sys = "0.3"
-bitflags = "1.2"
+bitflags = "2.13"
 rustacuda_derive = { version = "0.1.2", path = "rustacuda_derive" }
 rustacuda_core = { version = "0.1.2", path = "rustacuda_core" }

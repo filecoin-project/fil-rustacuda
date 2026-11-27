@@ -18,16 +18,16 @@ impl Module {
     /// Load a module from the given file name into the current context.
     ///
     /// The given file should be either a cubin file, a ptx file, or a fatbin file such as
-    /// those produced by `nvcc`.
+    /// those produced by `nvcc`. PTX must be NUL-terminated.
     ///
     /// # Example
     ///
     /// ```
-    /// # use rustacuda::*;
+    /// # use fil_rustacuda::*;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let _ctx = quick_init()?;
-    /// use rustacuda::module::Module;
+    /// use fil_rustacuda::module::Module;
     /// use std::ffi::CString;
     ///
     /// let filename = CString::new("./resources/add.ptx")?;
@@ -55,16 +55,16 @@ impl Module {
     /// compiled executable.
     ///
     /// The given CStr must contain the bytes of a cubin file, a ptx file or a fatbin file such as
-    /// those produced by `nvcc`.
+    /// those produced by `nvcc`. PTX must be NUL-terminated.
     ///
     /// # Example
     ///
     /// ```
-    /// # use rustacuda::*;
+    /// # use fil_rustacuda::*;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let _ctx = quick_init()?;
-    /// use rustacuda::module::Module;
+    /// use fil_rustacuda::module::Module;
     /// use std::ffi::CString;
     ///
     /// let image = CString::new(include_str!("../resources/add.ptx"))?;
@@ -92,20 +92,20 @@ impl Module {
     /// device code into the compiled executable.
     ///
     /// The given slice must contain the bytes of a cubin file, a ptx file or a fatbin file such as
-    /// those produced by `nvcc`.
+    /// those produced by `nvcc`. PTX must be NUL-terminated.
     ///
     /// # Example
     ///
     /// ```
-    /// # use rustacuda::*;
+    /// # use fil_rustacuda::*;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let _ctx = quick_init()?;
-    /// use rustacuda::module::Module;
+    /// use fil_rustacuda::module::Module;
     /// use std::ffi::CString;
     ///
-    /// let image = include_bytes!("../resources/add.ptx");
-    /// let module = Module::load_from_bytes(image)?;
+    /// let image = concat!(include_str!("../resources/add.ptx"), "\0");
+    /// let module = Module::load_from_bytes(image.as_bytes())?;
     /// # Ok(())
     /// # }
     /// ```
@@ -132,12 +132,12 @@ impl Module {
     /// # Examples
     ///
     /// ```
-    /// # use rustacuda::*;
-    /// # use rustacuda::memory::CopyDestination;
+    /// # use fil_rustacuda::*;
+    /// # use fil_rustacuda::memory::CopyDestination;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let _ctx = quick_init()?;
-    /// use rustacuda::module::Module;
+    /// use fil_rustacuda::module::Module;
     /// use std::ffi::CString;
     ///
     /// let ptx = CString::new(include_str!("../resources/add.ptx"))?;
@@ -162,7 +162,7 @@ impl Module {
                 name.as_ptr(),
             )
             .to_result()?;
-            assert_eq!(size, mem::size_of::<T>());
+            assert_eq!(size, size_of::<T>());
             Ok(Symbol {
                 ptr,
                 module: PhantomData,
@@ -175,11 +175,11 @@ impl Module {
     /// # Examples
     ///
     /// ```
-    /// # use rustacuda::*;
+    /// # use fil_rustacuda::*;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let _ctx = quick_init()?;
-    /// use rustacuda::module::Module;
+    /// use fil_rustacuda::module::Module;
     /// use std::ffi::CString;
     ///
     /// let ptx = CString::new(include_str!("../resources/add.ptx"))?;
@@ -211,11 +211,11 @@ impl Module {
     /// # Example
     ///
     /// ```
-    /// # use rustacuda::*;
+    /// # use fil_rustacuda::*;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let _ctx = quick_init()?;
-    /// use rustacuda::module::Module;
+    /// use fil_rustacuda::module::Module;
     /// use std::ffi::CString;
     ///
     /// let ptx = CString::new(include_str!("../resources/add.ptx"))?;
@@ -268,15 +268,15 @@ pub struct Symbol<'a, T: DeviceCopy> {
     ptr: DevicePointer<T>,
     module: PhantomData<&'a Module>,
 }
-impl<'a, T: DeviceCopy> crate::private::Sealed for Symbol<'a, T> {}
-impl<'a, T: DeviceCopy> fmt::Pointer for Symbol<'a, T> {
+impl<T: DeviceCopy> crate::private::Sealed for Symbol<'_, T> {}
+impl<T: DeviceCopy> fmt::Pointer for Symbol<'_, T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fmt::Pointer::fmt(&self.ptr, f)
     }
 }
-impl<'a, T: DeviceCopy> CopyDestination<T> for Symbol<'a, T> {
+impl<T: DeviceCopy> CopyDestination<T> for Symbol<'_, T> {
     fn copy_from(&mut self, val: &T) -> CudaResult<()> {
-        let size = mem::size_of::<T>();
+        let size = size_of::<T>();
         if size != 0 {
             unsafe {
                 cuda_driver_sys::cuMemcpyHtoD_v2(
@@ -291,7 +291,7 @@ impl<'a, T: DeviceCopy> CopyDestination<T> for Symbol<'a, T> {
     }
 
     fn copy_to(&self, val: &mut T) -> CudaResult<()> {
-        let size = mem::size_of::<T>();
+        let size = size_of::<T>();
         if size != 0 {
             unsafe {
                 cuda_driver_sys::cuMemcpyDtoH_v2(

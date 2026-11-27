@@ -32,16 +32,16 @@ impl<T> DeviceBuffer<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let mut buffer = unsafe { DeviceBuffer::uninitialized(5).unwrap() };
     /// buffer.copy_from(&[0u64, 1, 2, 3, 4]).unwrap();
     /// ```
     pub unsafe fn uninitialized(size: usize) -> CudaResult<Self> {
-        let ptr = if size > 0 && mem::size_of::<T>() > 0 {
+        let ptr = if size > 0 && size_of::<T>() > 0 {
             cuda_malloc(size)?
         } else {
-            DevicePointer::wrap(ptr::NonNull::dangling().as_ptr() as *mut T)
+            DevicePointer::wrap(ptr::NonNull::dangling().as_ptr())
         };
         Ok(DeviceBuffer {
             buf: ptr,
@@ -66,21 +66,21 @@ impl<T> DeviceBuffer<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let buffer = unsafe { DeviceBuffer::zeroed(5).unwrap() };
     /// let mut host_values = [1u64, 2, 3, 4, 5];
     /// buffer.copy_to(&mut host_values).unwrap();
     /// assert_eq!([0u64, 0, 0, 0, 0], host_values);
     /// ```
     pub unsafe fn zeroed(size: usize) -> CudaResult<Self> {
-        let ptr = if size > 0 && mem::size_of::<T>() > 0 {
+        let ptr = if size > 0 && size_of::<T>() > 0 {
             let mut ptr = cuda_malloc(size)?;
-            cuda_driver_sys::cuMemsetD8_v2(ptr.as_raw_mut() as u64, 0, size * mem::size_of::<T>())
+            cuda_driver_sys::cuMemsetD8_v2(ptr.as_raw_mut() as u64, 0, size * size_of::<T>())
                 .to_result()?;
             ptr
         } else {
-            DevicePointer::wrap(ptr::NonNull::dangling().as_ptr() as *mut T)
+            DevicePointer::wrap(ptr::NonNull::dangling().as_ptr())
         };
         Ok(DeviceBuffer {
             buf: ptr,
@@ -96,7 +96,7 @@ impl<T> DeviceBuffer<T> {
     /// checked:
     ///
     /// * `ptr` needs to have been previously allocated via `DeviceBuffer` or
-    /// [`cuda_malloc`](fn.cuda_malloc.html).
+    ///   [`cuda_malloc`](fn.cuda_malloc.html).
     /// * `ptr`'s `T` needs to have the same size and alignment as it was allocated with.
     /// * `capacity` needs to be the capacity that the pointer was allocated with.
     ///
@@ -112,9 +112,9 @@ impl<T> DeviceBuffer<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
     /// use std::mem;
-    /// use rustacuda::memory::*;
+    /// use fil_rustacuda::memory::*;
     ///
     /// let mut buffer = DeviceBuffer::from_slice(&[0u64; 5]).unwrap();
     /// let ptr = buffer.as_device_ptr();
@@ -136,8 +136,8 @@ impl<T> DeviceBuffer<T> {
     /// # Example
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let x = DeviceBuffer::from_slice(&[10, 20, 30]).unwrap();
     /// match DeviceBuffer::drop(x) {
     ///     Ok(()) => println!("Successfully destroyed"),
@@ -152,7 +152,7 @@ impl<T> DeviceBuffer<T> {
             return Ok(());
         }
 
-        if dev_buf.capacity > 0 && mem::size_of::<T>() > 0 {
+        if dev_buf.capacity > 0 && size_of::<T>() > 0 {
             let capacity = dev_buf.capacity;
             let ptr = mem::replace(&mut dev_buf.buf, DevicePointer::null());
             unsafe {
@@ -180,8 +180,8 @@ impl<T: DeviceCopy> DeviceBuffer<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let values = [0u64; 5];
     /// let mut buffer = DeviceBuffer::from_slice(&values).unwrap();
     /// ```
@@ -207,9 +207,9 @@ impl<T: DeviceCopy> DeviceBuffer<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
-    /// use rustacuda::stream::{Stream, StreamFlags};
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
+    /// use fil_rustacuda::stream::{Stream, StreamFlags};
     ///
     /// let stream = Stream::new(StreamFlags::NON_BLOCKING, None).unwrap();
     /// let values = [0u64; 5];
@@ -240,8 +240,8 @@ impl<T> Deref for DeviceBuffer<T> {
 impl<T> DerefMut for DeviceBuffer<T> {
     fn deref_mut(&mut self) -> &mut DeviceSlice<T> {
         unsafe {
-            &mut *(::std::slice::from_raw_parts_mut(self.buf.as_raw_mut(), self.capacity)
-                as *mut [T] as *mut DeviceSlice<T>)
+            &mut *(ptr::slice_from_raw_parts_mut(self.buf.as_raw_mut(), self.capacity)
+                as *mut DeviceSlice<T>)
         }
     }
 }
@@ -251,7 +251,7 @@ impl<T> Drop for DeviceBuffer<T> {
             return;
         }
 
-        if self.capacity > 0 && mem::size_of::<T>() > 0 {
+        if self.capacity > 0 && size_of::<T>() > 0 {
             // No choice but to panic if this fails.
             let ptr = mem::replace(&mut self.buf, DevicePointer::null());
             unsafe {
@@ -267,10 +267,6 @@ mod test_device_buffer {
     use super::*;
     use crate::memory::device::DeviceBox;
     use crate::stream::{Stream, StreamFlags};
-
-    #[derive(Clone, Debug)]
-    struct ZeroSizedType;
-    unsafe impl DeviceCopy for ZeroSizedType {}
 
     #[test]
     fn test_from_slice_drop() {
@@ -464,7 +460,7 @@ mod test_device_buffer {
             .unwrap();
 
         // Don't allocate all memory to leave some space for the display's frame buffer
-        let allocation_size = (total_memory * 3) / 4 / mem::size_of::<u64>();
+        let allocation_size = (total_memory * 3) / 4 / size_of::<u64>();
         unsafe {
             // Test if allocation fails with an out-of-memory error
             let _buffer = DeviceBuffer::<u64>::uninitialized(allocation_size).unwrap();
