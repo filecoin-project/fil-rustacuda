@@ -28,6 +28,7 @@ bitflags! {
     ///
     /// The CUDA documentation claims that setting `DISABLE_TIMING` and `BLOCKING_SYNC` provides
     /// the best performance for `query()` and `stream.wait_event()`.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     pub struct EventFlags: u32 {
         /// The default event creation flag.
         const DEFAULT = 0x0;
@@ -72,11 +73,11 @@ impl Event {
     /// # Example
     ///
     /// ```
-    /// # use rustacuda::quick_init;
+    /// # use fil_rustacuda::quick_init;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let _context = quick_init()?;
-    /// use rustacuda::event::{Event, EventFlags};
+    /// use fil_rustacuda::event::{Event, EventFlags};
     ///
     /// // With default settings
     /// let event = Event::new(EventFlags::DEFAULT)?;
@@ -108,12 +109,12 @@ impl Event {
     /// # Example
     ///
     /// ```
-    /// # use rustacuda::quick_init;
-    /// # use rustacuda::stream::{Stream, StreamFlags};
+    /// # use fil_rustacuda::quick_init;
+    /// # use fil_rustacuda::stream::{Stream, StreamFlags};
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let _context = quick_init()?;
-    /// use rustacuda::event::{Event, EventFlags};
+    /// use fil_rustacuda::event::{Event, EventFlags};
     ///
     /// let stream = Stream::new(StreamFlags::NON_BLOCKING, None)?;
     /// let event = Event::new(EventFlags::DEFAULT)?;
@@ -138,12 +139,12 @@ impl Event {
     /// # Example
     ///
     /// ```
-    /// # use rustacuda::quick_init;
-    /// # use rustacuda::stream::{Stream, StreamFlags};
+    /// # use fil_rustacuda::quick_init;
+    /// # use fil_rustacuda::stream::{Stream, StreamFlags};
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let _context = quick_init()?;
-    /// use rustacuda::event::{Event, EventFlags, EventStatus};
+    /// use fil_rustacuda::event::{Event, EventFlags, EventStatus};
     ///
     /// let stream = Stream::new(StreamFlags::NON_BLOCKING, None)?;
     /// let event = Event::new(EventFlags::DEFAULT)?;
@@ -182,12 +183,12 @@ impl Event {
     /// # Example
     ///
     /// ```
-    /// # use rustacuda::quick_init;
-    /// # use rustacuda::stream::{Stream, StreamFlags};
+    /// # use fil_rustacuda::quick_init;
+    /// # use fil_rustacuda::stream::{Stream, StreamFlags};
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let _context = quick_init()?;
-    /// use rustacuda::event::{Event, EventFlags};
+    /// use fil_rustacuda::event::{Event, EventFlags};
     ///
     /// let stream = Stream::new(StreamFlags::NON_BLOCKING, None)?;
     /// let event = Event::new(EventFlags::DEFAULT)?;
@@ -227,11 +228,11 @@ impl Event {
     /// # Example
     ///
     /// ```
-    /// # use rustacuda::quick_init;
-    /// # use rustacuda::stream::{Stream, StreamFlags};
-    /// # use rustacuda::launch;
-    /// # use rustacuda::module::Module;
-    /// # use rustacuda::memory::DeviceBox;
+    /// # use fil_rustacuda::quick_init;
+    /// # use fil_rustacuda::stream::{Stream, StreamFlags};
+    /// # use fil_rustacuda::launch;
+    /// # use fil_rustacuda::module::Module;
+    /// # use fil_rustacuda::memory::DeviceBox;
     /// # use std::error::Error;
     /// # use std::ffi::CString;
     /// # fn main() -> Result<(), Box<dyn Error>> {
@@ -241,7 +242,7 @@ impl Event {
     /// # let mut x = DeviceBox::new(&10.0f32)?;
     /// # let mut y = DeviceBox::new(&20.0f32)?;
     /// # let mut result = DeviceBox::new(&0.0f32)?;
-    /// use rustacuda::event::{Event, EventFlags};
+    /// use fil_rustacuda::event::{Event, EventFlags};
     ///
     /// let stream = Stream::new(StreamFlags::NON_BLOCKING, None)?;
     /// let start_event = Event::new(EventFlags::DEFAULT)?;
@@ -298,11 +299,11 @@ impl Event {
     /// # Example
     ///
     /// ```
-    /// # use rustacuda::*;
+    /// # use fil_rustacuda::*;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let _context = quick_init()?;
-    /// use rustacuda::event::{Event, EventFlags};
+    /// use fil_rustacuda::event::{Event, EventFlags};
     ///
     /// let event = Event::new(EventFlags::DEFAULT)?;
     /// match Event::drop(event) {

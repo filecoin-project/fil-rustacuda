@@ -3,7 +3,7 @@
 //!
 //! ```compile_fail
 //! #[macro_use]
-//! extern crate rustacuda;
+//! extern crate fil_rustacuda;
 //! extern crate rustacuda_core;
 //!
 //! #[derive(Clone, DeviceCopy)]
@@ -12,7 +12,7 @@
 //!
 //! ```compile_fail
 //! #[macro_use]
-//! extern crate rustacuda;
+//! extern crate fil_rustacuda;
 //! extern crate rustacuda_core;
 //!
 //! #[derive(Clone, DeviceCopy)]
@@ -21,7 +21,7 @@
 //!
 //! ```compile_fail
 //! #[macro_use]
-//! extern crate rustacuda;
+//! extern crate fil_rustacuda;
 //! extern crate rustacuda_core;
 //!
 //! #[derive(Clone, DeviceCopy)]
@@ -33,7 +33,7 @@
 //!
 //! ```compile_fail
 //! #[macro_use]
-//! extern crate rustacuda;
+//! extern crate fil_rustacuda;
 //! extern crate rustacuda_core;
 //!
 //! #[derive(Clone, DeviceCopy)]
@@ -45,7 +45,7 @@
 //!
 //! ```compile_fail
 //! #[macro_use]
-//! extern crate rustacuda;
+//! extern crate fil_rustacuda;
 //! extern crate rustacuda_core;
 //!
 //! #[derive(Copy, Clone, DeviceCopy)]

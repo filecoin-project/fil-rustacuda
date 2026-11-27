@@ -21,6 +21,7 @@ use std::ptr;
 
 bitflags! {
     /// Bit flags for configuring a CUDA Stream.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     pub struct StreamFlags: u32 {
         /// No flags set.
         const DEFAULT = 0x00;
@@ -44,6 +45,7 @@ bitflags! {
     /// Bit flags for configuring a CUDA Stream waiting on an CUDA Event.
     ///
     /// Current versions of CUDA support only the default flag.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     pub struct StreamWaitEventFlags: u32 {
         /// No flags set.
         const DEFAULT = 0x0;
@@ -69,11 +71,11 @@ impl Stream {
     /// # Examples
     ///
     /// ```
-    /// # use rustacuda::*;
+    /// # use fil_rustacuda::*;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let _ctx = quick_init()?;
-    /// use rustacuda::stream::{Stream, StreamFlags};
+    /// use fil_rustacuda::stream::{Stream, StreamFlags};
     ///
     /// // With default priority
     /// let stream = Stream::new(StreamFlags::NON_BLOCKING, None)?;
@@ -103,11 +105,11 @@ impl Stream {
     /// # Examples
     ///
     /// ```
-    /// # use rustacuda::*;
+    /// # use fil_rustacuda::*;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let _ctx = quick_init()?;
-    /// use rustacuda::stream::{Stream, StreamFlags};
+    /// use fil_rustacuda::stream::{Stream, StreamFlags};
     ///
     /// let stream = Stream::new(StreamFlags::NON_BLOCKING, None)?;
     /// assert_eq!(StreamFlags::NON_BLOCKING, stream.get_flags().unwrap());
@@ -131,11 +133,11 @@ impl Stream {
     /// # Examples
     ///
     /// ```
-    /// # use rustacuda::*;
+    /// # use fil_rustacuda::*;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let _ctx = quick_init()?;
-    /// use rustacuda::stream::{Stream, StreamFlags};
+    /// use fil_rustacuda::stream::{Stream, StreamFlags};
     ///
     /// let stream = Stream::new(StreamFlags::NON_BLOCKING, 1i32.into())?;
     /// println!("{}", stream.get_priority()?);
@@ -165,11 +167,11 @@ impl Stream {
     /// # Examples
     ///
     /// ```
-    /// # use rustacuda::*;
+    /// # use fil_rustacuda::*;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let _ctx = quick_init()?;
-    /// use rustacuda::stream::{Stream, StreamFlags};
+    /// use fil_rustacuda::stream::{Stream, StreamFlags};
     ///
     /// let stream = Stream::new(StreamFlags::NON_BLOCKING, 1i32.into())?;
     ///
@@ -204,11 +206,11 @@ impl Stream {
     /// # Examples
     ///
     /// ```
-    /// # use rustacuda::*;
+    /// # use fil_rustacuda::*;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let _ctx = quick_init()?;
-    /// use rustacuda::stream::{Stream, StreamFlags};
+    /// use fil_rustacuda::stream::{Stream, StreamFlags};
     ///
     /// let stream = Stream::new(StreamFlags::NON_BLOCKING, 1i32.into())?;
     ///
@@ -232,12 +234,12 @@ impl Stream {
     /// # Example
     ///
     /// ```
-    /// # use rustacuda::quick_init;
+    /// # use fil_rustacuda::quick_init;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let _context = quick_init()?;
-    /// use rustacuda::stream::{Stream, StreamFlags, StreamWaitEventFlags};
-    /// use rustacuda::event::{Event, EventFlags};
+    /// use fil_rustacuda::stream::{Stream, StreamFlags, StreamWaitEventFlags};
+    /// use fil_rustacuda::event::{Event, EventFlags};
     ///
     /// let stream_0 = Stream::new(StreamFlags::NON_BLOCKING, None)?;
     /// let stream_1 = Stream::new(StreamFlags::NON_BLOCKING, None)?;
@@ -309,11 +311,11 @@ impl Stream {
     /// # Example
     ///
     /// ```
-    /// # use rustacuda::*;
+    /// # use fil_rustacuda::*;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let _ctx = quick_init()?;
-    /// use rustacuda::stream::{Stream, StreamFlags};
+    /// use fil_rustacuda::stream::{Stream, StreamFlags};
     ///
     /// let stream = Stream::new(StreamFlags::NON_BLOCKING, 1i32.into())?;
     /// match Stream::drop(stream) {

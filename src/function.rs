@@ -3,7 +3,7 @@
 use crate::context::{CacheConfig, SharedMemoryConfig};
 use crate::error::{CudaResult, ToResult};
 use crate::module::Module;
-use cuda_driver_sys::CUfunction;
+use cuda_driver_sys::{CUfunc_cache, CUfunction, CUfunction_attribute, CUsharedconfig};
 use std::marker::PhantomData;
 use std::mem::transmute;
 
@@ -55,7 +55,7 @@ impl From<(u32, u32, u32)> for GridSize {
         GridSize::xyz(x, y, z)
     }
 }
-impl<'a> From<&'a GridSize> for GridSize {
+impl From<&GridSize> for GridSize {
     fn from(other: &GridSize) -> GridSize {
         other.clone()
     }
@@ -111,7 +111,7 @@ impl From<(u32, u32, u32)> for BlockSize {
         BlockSize::xyz(x, y, z)
     }
 }
-impl<'a> From<&'a BlockSize> for BlockSize {
+impl From<&BlockSize> for BlockSize {
     fn from(other: &BlockSize) -> BlockSize {
         other.clone()
     }
@@ -159,8 +159,8 @@ pub struct Function<'a> {
     inner: CUfunction,
     module: PhantomData<&'a Module>,
 }
-impl<'a> Function<'a> {
-    pub(crate) fn new(inner: CUfunction, _module: &Module) -> Function {
+impl Function<'_> {
+    pub(crate) fn new(inner: CUfunction, _module: &Module) -> Function<'_> {
         Function {
             inner,
             module: PhantomData,
@@ -172,16 +172,16 @@ impl<'a> Function<'a> {
     /// # Examples
     ///
     /// ```
-    /// # use rustacuda::*;
+    /// # use fil_rustacuda::*;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let _ctx = quick_init()?;
-    /// # use rustacuda::module::Module;
+    /// # use fil_rustacuda::module::Module;
     /// # use std::ffi::CString;
     /// # let ptx = CString::new(include_str!("../resources/add.ptx"))?;
     /// # let module = Module::load_from_string(&ptx)?;
     /// # let name = CString::new("sum")?;
-    /// use rustacuda::function::FunctionAttribute;
+    /// use fil_rustacuda::function::FunctionAttribute;
     /// let function = module.get_function(&name)?;
     /// let shared_memory = function.get_attribute(FunctionAttribute::SharedMemorySizeBytes)?;
     /// println!("This function uses {} bytes of shared memory", shared_memory);
@@ -194,7 +194,7 @@ impl<'a> Function<'a> {
             cuda_driver_sys::cuFuncGetAttribute(
                 &mut val as *mut i32,
                 // This should be safe, as the repr and values of FunctionAttribute should match.
-                ::std::mem::transmute(attr),
+                transmute::<FunctionAttribute, CUfunction_attribute>(attr),
                 self.inner,
             )
             .to_result()?;
@@ -216,23 +216,29 @@ impl<'a> Function<'a> {
     /// # Example
     ///
     /// ```
-    /// # use rustacuda::*;
+    /// # use fil_rustacuda::*;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let _ctx = quick_init()?;
-    /// # use rustacuda::module::Module;
+    /// # use fil_rustacuda::module::Module;
     /// # use std::ffi::CString;
     /// # let ptx = CString::new(include_str!("../resources/add.ptx"))?;
     /// # let module = Module::load_from_string(&ptx)?;
     /// # let name = CString::new("sum")?;
-    /// use rustacuda::context::CacheConfig;
+    /// use fil_rustacuda::context::CacheConfig;
     /// let mut function = module.get_function(&name)?;
     /// function.set_cache_config(CacheConfig::PreferL1)?;
     /// # Ok(())
     /// # }
     /// ```
     pub fn set_cache_config(&mut self, config: CacheConfig) -> CudaResult<()> {
-        unsafe { cuda_driver_sys::cuFuncSetCacheConfig(self.inner, transmute(config)).to_result() }
+        unsafe {
+            cuda_driver_sys::cuFuncSetCacheConfig(
+                self.inner,
+                transmute::<CacheConfig, CUfunc_cache>(config),
+            )
+            .to_result()
+        }
     }
 
     /// Sets the preferred shared memory configuration for this function.
@@ -244,23 +250,29 @@ impl<'a> Function<'a> {
     /// # Example
     ///
     /// ```
-    /// # use rustacuda::*;
+    /// # use fil_rustacuda::*;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let _ctx = quick_init()?;
-    /// # use rustacuda::module::Module;
+    /// # use fil_rustacuda::module::Module;
     /// # use std::ffi::CString;
     /// # let ptx = CString::new(include_str!("../resources/add.ptx"))?;
     /// # let module = Module::load_from_string(&ptx)?;
     /// # let name = CString::new("sum")?;
-    /// use rustacuda::context::SharedMemoryConfig;
+    /// use fil_rustacuda::context::SharedMemoryConfig;
     /// let mut function = module.get_function(&name)?;
     /// function.set_shared_memory_config(SharedMemoryConfig::EightByteBankSize)?;
     /// # Ok(())
     /// # }
     /// ```
     pub fn set_shared_memory_config(&mut self, cfg: SharedMemoryConfig) -> CudaResult<()> {
-        unsafe { cuda_driver_sys::cuFuncSetSharedMemConfig(self.inner, transmute(cfg)).to_result() }
+        unsafe {
+            cuda_driver_sys::cuFuncSetSharedMemConfig(
+                self.inner,
+                transmute::<SharedMemoryConfig, CUsharedconfig>(cfg),
+            )
+            .to_result()
+        }
     }
 
     pub(crate) fn to_inner(&self) -> CUfunction {
@@ -314,17 +326,17 @@ impl<'a> Function<'a> {
 ///
 /// ```
 /// # #[macro_use]
-/// # use rustacuda::*;
+/// # use fil_rustacuda::*;
 /// # use std::error::Error;
-/// use rustacuda::memory::*;
-/// use rustacuda::module::Module;
-/// use rustacuda::stream::*;
+/// use fil_rustacuda::memory::*;
+/// use fil_rustacuda::module::Module;
+/// use fil_rustacuda::stream::*;
 /// use std::ffi::CString;
 ///
 /// # fn main() -> Result<(), Box<dyn Error>> {
 ///
 /// // Set up the context, load the module, and create a stream to run kernels in.
-/// let _ctx = rustacuda::quick_init()?;
+/// let _ctx = fil_rustacuda::quick_init()?;
 /// let ptx = CString::new(include_str!("../resources/add.ptx"))?;
 /// let module = Module::load_from_string(&ptx)?;
 /// let stream = Stream::new(StreamFlags::NON_BLOCKING, None)?;

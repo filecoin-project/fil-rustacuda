@@ -65,7 +65,7 @@ impl ArrayFormat {
 
 bitflags! {
     /// Flags which modify the behavior of CUDA array creation.
-    #[derive(Default)]
+    #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     pub struct ArrayObjectFlags: c_uint {
         /// Enables creation of layered CUDA arrays. When this flag is set, depth specifies the
         /// number of layers, not the depth of a 3D array.
@@ -396,11 +396,11 @@ impl ArrayObject {
     /// `num_channels` determines the number of channels per array element (1, 2, or 4).
     ///
     /// ```
-    /// # use rustacuda::*;
+    /// # use fil_rustacuda::*;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let _ctx = quick_init()?;
-    /// use rustacuda::memory::array::{ArrayObject, ArrayFormat};
+    /// use fil_rustacuda::memory::array::{ArrayObject, ArrayFormat};
     ///
     /// let one_dim_array = ArrayObject::new([10, 0, 0], ArrayFormat::Float, 1)?;
     /// let two_dim_array = ArrayObject::new([10, 12, 0], ArrayFormat::Float, 1)?;
@@ -426,11 +426,11 @@ impl ArrayObject {
     /// `num_channels` determines the number of channels per array element (1, 2, or 4).
     ///
     /// ```
-    /// # use rustacuda::*;
+    /// # use fil_rustacuda::*;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let _ctx = quick_init()?;
-    /// use rustacuda::memory::array::{ArrayObject, ArrayFormat};
+    /// use fil_rustacuda::memory::array::{ArrayObject, ArrayFormat};
     ///
     /// // Allocates a 1D array of 10 single-precision, single-channel floating point values.
     /// let one_dim_array = ArrayObject::new_1d(10, ArrayFormat::Float, 1)?;
@@ -456,11 +456,11 @@ impl ArrayObject {
     /// `num_channels` determines the number of channels per array element (1, 2, or 4).
     ///
     /// ```
-    /// # use rustacuda::*;
+    /// # use fil_rustacuda::*;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let _ctx = quick_init()?;
-    /// use rustacuda::memory::array::{ArrayObject, ArrayFormat};
+    /// use fil_rustacuda::memory::array::{ArrayObject, ArrayFormat};
     ///
     /// // Allocates an 8x24 array of single-precision, single-channel floating point values.
     /// let one_dim_array = ArrayObject::new_2d([8, 24], ArrayFormat::Float, 1)?;
@@ -488,11 +488,11 @@ impl ArrayObject {
     /// `num_channels` determines the number of channels per array element (1, 2, or 4).
     ///
     /// ```
-    /// # use rustacuda::*;
+    /// # use fil_rustacuda::*;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let _ctx = quick_init()?;
-    /// use rustacuda::memory::array::{ArrayObject, ArrayFormat};
+    /// use fil_rustacuda::memory::array::{ArrayObject, ArrayFormat};
     ///
     /// // Allocates a 7x8 array with 10 layers of single-precision, single-channel floating
     /// // point values.
@@ -525,11 +525,11 @@ impl ArrayObject {
     /// `num_channels` determines the number of channels per array element (1, 2, or 4).
     ///
     /// ```
-    /// # use rustacuda::*;
+    /// # use fil_rustacuda::*;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let _ctx = quick_init()?;
-    /// use rustacuda::memory::array::{ArrayObject, ArrayFormat};
+    /// use fil_rustacuda::memory::array::{ArrayObject, ArrayFormat};
     ///
     /// // Allocates a 5-element array with 10 layers of single-precision, single-channel floating
     /// // point values.
@@ -560,11 +560,11 @@ impl ArrayObject {
     /// `num_channels` determines the number of channels per array element (1, 2, or 4).
     ///
     /// ```
-    /// # use rustacuda::*;
+    /// # use fil_rustacuda::*;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let _ctx = quick_init()?;
-    /// use rustacuda::memory::array::{ArrayObject, ArrayFormat};
+    /// use fil_rustacuda::memory::array::{ArrayObject, ArrayFormat};
     ///
     /// // Allocates an 8x8 Cubemap array of single-precision, single-channel floating point
     /// // numbers.
@@ -597,11 +597,11 @@ impl ArrayObject {
     /// `num_channels` determines the number of channels per array element (1, 2, or 4).
     ///
     /// ```
-    /// # use rustacuda::*;
+    /// # use fil_rustacuda::*;
     /// # use std::error::Error;
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let _ctx = quick_init()?;
-    /// use rustacuda::memory::array::{ArrayObject, ArrayFormat};
+    /// use fil_rustacuda::memory::array::{ArrayObject, ArrayFormat};
     ///
     /// // Allocates an 8x8 Layered Cubemap array of single-precision, single-channel floating point
     /// // values with 5 layers.

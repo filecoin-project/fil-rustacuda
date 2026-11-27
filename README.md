@@ -81,7 +81,7 @@ Now, to start building a basic CUDA crate. Add the following to your `Cargo.toml
 
 ```yaml
 [dependencies]
-rustacuda = "0.1"
+fil-rustacuda = "0.1"
 rustacuda_core = "0.1"
 rustacuda_derive = "0.1"
 ```
@@ -90,7 +90,7 @@ And this to your crate root:
 
 ```rust
 #[macro_use]
-extern crate rustacuda;
+extern crate fil_rustacuda;
 
 #[macro_use]
 extern crate rustacuda_derive;
@@ -106,16 +106,16 @@ place this code to your `main.rs` file.
 
 ```rust
 #[macro_use]
-extern crate rustacuda;
+extern crate fil_rustacuda;
 
-use rustacuda::prelude::*;
-use rustacuda::memory::DeviceBox;
+use fil_rustacuda::prelude::*;
+use fil_rustacuda::memory::DeviceBox;
 use std::error::Error;
 use std::ffi::CString;
 
 fn main() -> Result<(), Box<dyn Error>> {
     // Initialize the CUDA API
-    rustacuda::init(CudaFlags::empty())?;
+    fil_rustacuda::init(CudaFlags::empty())?;
     
     // Get the first device
     let device = Device::get_device(0)?;

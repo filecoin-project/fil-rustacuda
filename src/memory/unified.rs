@@ -33,12 +33,12 @@ impl<T: DeviceCopy> UnifiedBox<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let five = UnifiedBox::new(5).unwrap();
     /// ```
     pub fn new(val: T) -> CudaResult<Self> {
-        if mem::size_of::<T>() == 0 {
+        if size_of::<T>() == 0 {
             Ok(UnifiedBox {
                 ptr: UnifiedPointer::null(),
             })
@@ -66,13 +66,13 @@ impl<T: DeviceCopy> UnifiedBox<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let mut five = unsafe{ UnifiedBox::uninitialized().unwrap() };
     /// *five = 5u64;
     /// ```
     pub unsafe fn uninitialized() -> CudaResult<Self> {
-        if mem::size_of::<T>() == 0 {
+        if size_of::<T>() == 0 {
             Ok(UnifiedBox {
                 ptr: UnifiedPointer::null(),
             })
@@ -98,8 +98,8 @@ impl<T: DeviceCopy> UnifiedBox<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let x = UnifiedBox::new(5).unwrap();
     /// let ptr = UnifiedBox::into_unified(x).as_raw_mut();
     /// let x = unsafe { UnifiedBox::from_raw(ptr) };
@@ -126,8 +126,8 @@ impl<T: DeviceCopy> UnifiedBox<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let x = UnifiedBox::new(5).unwrap();
     /// let ptr = UnifiedBox::into_unified(x);
     /// let x = unsafe { UnifiedBox::from_unified(ptr) };
@@ -149,8 +149,8 @@ impl<T: DeviceCopy> UnifiedBox<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let x = UnifiedBox::new(5).unwrap();
     /// let ptr = UnifiedBox::into_unified(x);
     /// # unsafe { UnifiedBox::from_unified(ptr) };
@@ -169,8 +169,8 @@ impl<T: DeviceCopy> UnifiedBox<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let mut x = UnifiedBox::new(5).unwrap();
     /// let ptr = x.as_unified_ptr();
     /// println!("{:p}", ptr);
@@ -206,8 +206,8 @@ impl<T: DeviceCopy> UnifiedBox<T> {
     /// # Example
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let x = UnifiedBox::new(5).unwrap();
     /// match UnifiedBox::drop(x) {
     ///     Ok(()) => println!("Successfully destroyed"),
@@ -248,22 +248,22 @@ impl<T: DeviceCopy> Drop for UnifiedBox<T> {
 
 impl<T: DeviceCopy> Borrow<T> for UnifiedBox<T> {
     fn borrow(&self) -> &T {
-        &**self
+        self
     }
 }
 impl<T: DeviceCopy> BorrowMut<T> for UnifiedBox<T> {
     fn borrow_mut(&mut self) -> &mut T {
-        &mut **self
+        self
     }
 }
 impl<T: DeviceCopy> AsRef<T> for UnifiedBox<T> {
     fn as_ref(&self) -> &T {
-        &**self
+        self
     }
 }
 impl<T: DeviceCopy> AsMut<T> for UnifiedBox<T> {
     fn as_mut(&mut self) -> &mut T {
-        &mut **self
+        self
     }
 }
 impl<T: DeviceCopy> Deref for UnifiedBox<T> {
@@ -280,12 +280,12 @@ impl<T: DeviceCopy> DerefMut for UnifiedBox<T> {
 }
 impl<T: Display + DeviceCopy> Display for UnifiedBox<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Display::fmt(&**self, f)
+        Display::fmt(&**self, f)
     }
 }
 impl<T: DeviceCopy> Pointer for UnifiedBox<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Pointer::fmt(&self.ptr, f)
+        Pointer::fmt(&self.ptr, f)
     }
 }
 impl<T: DeviceCopy + PartialEq> PartialEq for UnifiedBox<T> {
@@ -342,8 +342,8 @@ impl<T: DeviceCopy + Clone> UnifiedBuffer<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let mut buffer = UnifiedBuffer::new(&0u64, 5).unwrap();
     /// buffer[0] = 1;
     /// ```
@@ -367,8 +367,8 @@ impl<T: DeviceCopy + Clone> UnifiedBuffer<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let values = [0u64; 5];
     /// let mut buffer = UnifiedBuffer::from_slice(&values).unwrap();
     /// buffer[0] = 1;
@@ -400,18 +400,18 @@ impl<T: DeviceCopy> UnifiedBuffer<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let mut buffer = unsafe { UnifiedBuffer::uninitialized(5).unwrap() };
     /// for i in buffer.iter_mut() {
     ///     *i = 0u64;
     /// }
     /// ```
     pub unsafe fn uninitialized(size: usize) -> CudaResult<Self> {
-        let ptr = if size > 0 && mem::size_of::<T>() > 0 {
+        let ptr = if size > 0 && size_of::<T>() > 0 {
             cuda_malloc_unified(size)?
         } else {
-            UnifiedPointer::wrap(ptr::NonNull::dangling().as_ptr() as *mut T)
+            UnifiedPointer::wrap(ptr::NonNull::dangling().as_ptr())
         };
         Ok(UnifiedBuffer {
             buf: ptr,
@@ -426,8 +426,8 @@ impl<T: DeviceCopy> UnifiedBuffer<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let buffer = UnifiedBuffer::new(&0u64, 5).unwrap();
     /// let sum : u64 = buffer.as_slice().iter().sum();
     /// ```
@@ -442,8 +442,8 @@ impl<T: DeviceCopy> UnifiedBuffer<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let mut buffer = UnifiedBuffer::new(&0u64, 5).unwrap();
     /// for i in buffer.as_mut_slice() {
     ///     *i = 12u64;
@@ -473,7 +473,7 @@ impl<T: DeviceCopy> UnifiedBuffer<T> {
     /// checked:
     ///
     /// * `ptr` needs to have been previously allocated via `UnifiedBuffer` or
-    /// [`cuda_malloc_unified`](fn.cuda_malloc_unified.html).
+    ///   [`cuda_malloc_unified`](fn.cuda_malloc_unified.html).
     /// * `ptr`'s `T` needs to have the same size and alignment as it was allocated with.
     /// * `capacity` needs to be the capacity that the pointer was allocated with.
     ///
@@ -489,9 +489,9 @@ impl<T: DeviceCopy> UnifiedBuffer<T> {
     /// # Examples
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
     /// use std::mem;
-    /// use rustacuda::memory::*;
+    /// use fil_rustacuda::memory::*;
     ///
     /// let mut buffer = UnifiedBuffer::new(&0u64, 5).unwrap();
     /// let ptr = buffer.as_unified_ptr();
@@ -513,8 +513,8 @@ impl<T: DeviceCopy> UnifiedBuffer<T> {
     /// # Example
     ///
     /// ```
-    /// # let _context = rustacuda::quick_init().unwrap();
-    /// use rustacuda::memory::*;
+    /// # let _context = fil_rustacuda::quick_init().unwrap();
+    /// use fil_rustacuda::memory::*;
     /// let x = UnifiedBuffer::from_slice(&[10u32, 20, 30]).unwrap();
     /// match UnifiedBuffer::drop(x) {
     ///     Ok(()) => println!("Successfully destroyed"),
@@ -529,7 +529,7 @@ impl<T: DeviceCopy> UnifiedBuffer<T> {
             return Ok(());
         }
 
-        if uni_buf.capacity > 0 && mem::size_of::<T>() > 0 {
+        if uni_buf.capacity > 0 && size_of::<T>() > 0 {
             let capacity = uni_buf.capacity;
             let ptr = mem::replace(&mut uni_buf.buf, UnifiedPointer::null());
             unsafe {
@@ -581,7 +581,7 @@ impl<T: DeviceCopy> Drop for UnifiedBuffer<T> {
             return;
         }
 
-        if self.capacity > 0 && mem::size_of::<T>() > 0 {
+        if self.capacity > 0 && size_of::<T>() > 0 {
             // No choice but to panic if this fails.
             unsafe {
                 let ptr = mem::replace(&mut self.buf, UnifiedPointer::null());
@@ -712,7 +712,7 @@ mod test_unified_buffer {
     #[test]
     fn overflows_usize() {
         let _context = crate::quick_init().unwrap();
-        let err = UnifiedBuffer::new(&0u64, ::std::usize::MAX - 1).unwrap_err();
+        let err = UnifiedBuffer::new(&0u64, usize::MAX - 1).unwrap_err();
         assert_eq!(CudaError::InvalidMemoryAllocation, err);
     }
 
@@ -728,7 +728,7 @@ mod test_unified_buffer {
         let _ = PartialEq::eq(&x.as_unified_ptr(), &y.as_unified_ptr());
 
         let mut hasher = std::collections::hash_map::DefaultHasher::new();
-        std::hash::Hash::hash(&x.as_unified_ptr(), &mut hasher);
+        Hash::hash(&x.as_unified_ptr(), &mut hasher);
 
         let _ = format!("{:?}", x.as_unified_ptr());
         let _ = format!("{:p}", x.as_unified_ptr());

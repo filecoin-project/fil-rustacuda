@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: master
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  RUSTFLAGS: "-Dwarnings"
+  RUSTDOCFLAGS: "-Dwarnings"
+  CARGO_INCREMENTAL: 0
+  RUST_BACKTRACE: 1
+
+jobs:
+  set-msrv:
+    runs-on: ubuntu-latest
+    outputs:
+      msrv: ${{ steps.msrv.outputs.msrv }}
+      pinned: ${{ steps.msrv.outputs.pinned }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - id: msrv
+        run: |
+          echo "msrv=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[0].rust_version')" | tee --append "$GITHUB_OUTPUT"
+          echo "pinned=$(sed -n 's/^channel = "\(.*\)"$/\1/p' rust-toolchain.toml)" | tee --append "$GITHUB_OUTPUT"
+
+  # GitHub-hosted runners have no GPU, so tests are built and linked but not run here; test_gpu
+  # runs them. The stub libcuda.so from nvidia-cuda-dev satisfies the link.
+  linux:
+    needs: set-msrv
+    name: Check (${{ matrix.toolchain }})
+    strategy:
+      matrix:
+        toolchain:
+          - ${{ needs.set-msrv.outputs.msrv }}
+          - ${{ needs.set-msrv.outputs.pinned }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install the Rust toolchain
+        run: |
+          rustup toolchain install ${{ matrix.toolchain }} --profile minimal --no-self-update
+          rustup override set ${{ matrix.toolchain }}
+      # Checking doesn't link, so this needs neither a CUDA driver nor its stub; test_gpu links and runs.
+      - run: cargo check --locked --all-targets
+
+  test_gpu:
+    needs: set-msrv
+    runs-on: ['self-hosted', 'linux', 'x64', 'xlarge+gpu']
+    name: Test on GPU
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # TODO: Move the driver installation to the AMI.
+      # https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/install-nvidia-driver.html
+      # https://www.nvidia.com/en-us/drivers/
+      - name: Install CUDA drivers
+        run: |
+          curl -L -o nvidia-driver-local-repo-ubuntu2404-570.148.08_1.0-1_amd64.deb https://us.download.nvidia.com/tesla/570.148.08/nvidia-driver-local-repo-ubuntu2404-570.148.08_1.0-1_amd64.deb
+          sudo dpkg -i nvidia-driver-local-repo-ubuntu2404-570.148.08_1.0-1_amd64.deb
+          sudo cp /var/nvidia-driver-local-repo-ubuntu2404-570.148.08/nvidia-driver-local-*-keyring.gpg /usr/share/keyrings/
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends --yes cuda-drivers
+          rm nvidia-driver-local-repo-ubuntu2404-570.148.08_1.0-1_amd64.deb
+      - name: Load NVIDIA kernel modules and verify GPU
+        run: |
+          sudo modprobe nvidia
+          sudo modprobe nvidia-uvm
+          nvidia-smi
+      - uses: dtolnay/rust-toolchain@df2a88e9fe4098bad09cb42c3dec7187f15861fc
+        with:
+          toolchain: ${{ needs.set-msrv.outputs.pinned }}
+      # Tests each create a context and some allocate most of device memory, so in parallel they
+      # can fail with OutOfMemory.
+      - name: Run tests
+        run: cargo test --locked -- --test-threads=1
+      - name: Run `launch` example
+        run: cargo run --locked --example launch
+
+  clippy_check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Clippy
+        run: cargo clippy --locked --all-targets
+
+  check_fmt_and_docs:
+    name: Checking fmt and docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: fmt
+        run: cargo fmt --all -- --check
+      - name: Docs
+        run: cargo doc --locked --no-deps

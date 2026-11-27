@@ -1,3 +1,6 @@
+// Equality and ordering compare pointer metadata as well as address, as the raw pointer impls do.
+#![allow(ambiguous_wide_pointer_comparisons)]
+
 use crate::memory::DeviceCopy;
 
 use core::{
